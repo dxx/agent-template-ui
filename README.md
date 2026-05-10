@@ -47,7 +47,7 @@ APP_API_BASE_URL=http://localhost:8000
 
 ### 登录模块
 
-- 手机号 + 验证码登录
+- 手机号 + 验证码登录（模拟）
 - 登录信息存储至 localStorage
 
 ### 对话模块
