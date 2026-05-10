@@ -1,0 +1,111 @@
+.markdown-body {
+  p {
+    margin: 0 0 8px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 12px 0 8px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  h1 { font-size: 18px; }
+  h2 { font-size: 16px; }
+  h3 { font-size: 15px; }
+  h4, h5, h6 { font-size: 14px; }
+
+  strong {
+    font-weight: 600;
+    color: #000;
+  }
+
+  code {
+    background: #e8e8e8;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    color: #d73a49;
+  }
+
+  pre {
+    background: #d4d4d4;
+    color: #202020;
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 8px 0;
+
+    code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+      border-radius: 0;
+    }
+  }
+
+  a {
+    color: #3080f9;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  ul, ol {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin: 4px 0;
+  }
+
+  blockquote {
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-left: 3px solid #3080f9;
+    background: #f0f7ff;
+    color: #555;
+    font-size: 13px;
+    border-radius: 0 8px 8px 0;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 13px;
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f0f0;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 12px 0;
+  }
+}
