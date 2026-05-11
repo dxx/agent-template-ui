@@ -412,7 +412,7 @@ export default function Chat() {
       </aside>
 
       {/* 主内容区 */}
-      <main className={`chat-main`}>
+      <main className="chat-main">
         <div className="expand-sidebar" onClick={() => setSidebarVisible(!sidebarVisible)}>
           <svg viewBox="0 0 24 24" width="20" height="20" style={{ overflow: 'hidden', cursor: 'pointer' }}>
             <rect x="4" y="4" width="16" height="16" rx="3" ry="3" fill="none" stroke="currentColor" strokeWidth="1.5"/>
