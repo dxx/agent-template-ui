@@ -142,7 +142,10 @@ export default function Chat() {
             setActiveChatId(items[0].chatId);
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          showMessage('error', msg || '获取最近对话失败');
+
           setChatList([]);
         });
     }
