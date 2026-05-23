@@ -123,6 +123,12 @@ export default function Chat() {
   }, [messages, pendingApprove]);
 
   useEffect(() => {
+    if (!isLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuVisible(false);
@@ -240,7 +246,7 @@ export default function Chat() {
             ...chat,
             messages: chat.messages.map(m => {
               if (m.id === currentReplyIdRef.current) {
-                return { ...m, handleList: [...m.handleList, { type: 'error' as const, content: '处理已被取消' }] };
+                return { ...m, handleList: [...m.handleList, { type: 'process' as const, content: '处理已被取消' }] };
               }
               return m;
             }),
