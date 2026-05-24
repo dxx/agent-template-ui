@@ -102,6 +102,7 @@ export default function Chat() {
   const [isScrollable, setIsScrollable] = useState(false);
   const [userMenuVisible, setUserMenuVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [pendingApprove, setPendingApprove] = useState<Approve | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -140,6 +141,7 @@ export default function Chat() {
 
   useEffect(() => {
     const handleGetAllChats = async () => {
+      setIsLoadingHistory(true);
       getAllChats()
         .then((data) => {
           const items = (data || []).map(convertResponseToChatItem);
@@ -153,6 +155,9 @@ export default function Chat() {
           showMessage('error', msg || '获取最近对话失败');
 
           setChatList([]);
+        })
+        .finally(() => {
+          setIsLoadingHistory(false);
         });
     }
     handleGetAllChats()
@@ -392,7 +397,7 @@ export default function Chat() {
           </div>
           <div className="chat-list">
             {chatList.length === 0 ? (
-              <div className="chat-empty">暂无对话</div>
+              <div className="chat-empty">{isLoadingHistory ? '正在加载...' : '暂无对话'}</div>
             ) : (
               chatList.map(chat => (
                 <div
