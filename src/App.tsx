@@ -3,10 +3,12 @@ import Login from './pages/Login';
 import Chat from './pages/Chat';
 import AuthGuard from './components/AuthGuard';
 import { MessageProvider } from './components/Message';
+import ProgressBar from './components/ProgressBar';
 
 function App() {
   return (
     <MessageProvider>
+      <ProgressBar />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
