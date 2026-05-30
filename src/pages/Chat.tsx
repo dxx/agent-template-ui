@@ -33,6 +33,8 @@ interface ChatItem {
 
 function HandleList({ items, autoCollapse = false }: { items: HandleItem[]; autoCollapse?: boolean }) {
   const [isExpanded, setIsExpanded] = useState(!autoCollapse);
+  const [itemsHeight, setItemsHeight] = useState(0);
+  const itemsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (autoCollapse) {
@@ -40,28 +42,32 @@ function HandleList({ items, autoCollapse = false }: { items: HandleItem[]; auto
     }
   }, [autoCollapse]);
 
+  useEffect(() => {
+    const el = itemsRef.current;
+    if (!el) return;
+    setItemsHeight(isExpanded ? el.scrollHeight : 0);
+  }, [items, isExpanded]);
+
   if (items.length === 0) return null;
 
   return (
-    <div className="handle-list">
-      {isExpanded && items.length > 1 && (
-        <div className="handle-collapse" onClick={() => setIsExpanded(false)}>
-          <span className="handle-arrow">▼</span>
-          <span>收起</span>
-        </div>
-      )}
-      {isExpanded && items.map((item, idx) => (
-        <div key={idx} className={`handle-item ${item.type}`}>
-          <span className="handle-icon">{item.type === 'process' ? '🔧' : '❌'}</span>
-          <span className="handle-content">{item.content}</span>
-        </div>
-      ))}
-      {!isExpanded && (
-        <div className="handle-summary" onClick={() => setIsExpanded(true)}>
-          <span className="handle-arrow">▶</span>
-          <span>处理过程 ({items.length} 条隐藏)</span>
-        </div>
-      )}
+    <div className={`handle-list ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
+      <div className={`handle-collapse ${items.length > 1 ? '' : 'is-hidden'}`} onClick={() => setIsExpanded(false)}>
+        <span className="handle-arrow">▼</span>
+        <span>收起</span>
+      </div>
+      <div ref={itemsRef} className="handle-items" style={{ height: itemsHeight }}>
+        {items.map((item, idx) => (
+          <div key={idx} className={`handle-item ${item.type}`}>
+            <span className="handle-icon">{item.type === 'process' ? '🔧' : '❌'}</span>
+            <span className="handle-content">{item.content}</span>
+          </div>
+        ))}
+      </div>
+      <div className="handle-summary" onClick={() => setIsExpanded(true)}>
+        <span className="handle-arrow">▶</span>
+        <span>处理过程 ({items.length} 条隐藏)</span>
+      </div>
     </div>
   );
 }
