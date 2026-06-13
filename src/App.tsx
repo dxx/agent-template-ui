@@ -4,12 +4,14 @@ import Chat from './pages/Chat';
 import AuthGuard from './components/AuthGuard';
 import { MessageProvider } from './components/Message';
 import ProgressBar from './components/ProgressBar';
+import RouteTitle from './components/RouteTitle';
 
 function App() {
   return (
     <MessageProvider>
       <ProgressBar />
       <BrowserRouter>
+        <RouteTitle />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
