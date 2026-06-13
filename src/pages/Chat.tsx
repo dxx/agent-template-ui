@@ -120,14 +120,16 @@ export default function Chat() {
   const messages = activeChat?.messages || [];
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
   };
 
   const MESSAE_MAX_LEN = 100;
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, pendingApprove]);
+  }, [activeChatId, messages, pendingApprove, isLoading]);
 
   useEffect(() => {
     if (!isLoading && textareaRef.current) {
@@ -446,6 +448,7 @@ export default function Chat() {
         </div>
         <div className="main-header">
           <div className="header-spacer"></div>
+          <div className="header-notice">内容由AI生成，可能不准确，请注意核实</div>
           <div className="user-info">
             <span
               className="user-name"
@@ -464,73 +467,74 @@ export default function Chat() {
           </div>
         </div>
         {/* 消息区域 */}
-        <div className="chat-messages">
-          {messages.length === 0 ? (
-            <div className="welcome-screen">
-              <div className="welcome-logo">
-                <img src={reactIcon} width="100%" height="100%" />
+        <div className="chat-message-area">
+          <div className="chat-messages">
+            {messages.length === 0 ? (
+              <div className="welcome-screen">
+                <div className="welcome-logo">
+                  <img src={reactIcon} width="100%" height="100%" />
+                </div>
+                <h2 className="welcome-title">你好，有什么可以帮你的？</h2>
               </div>
-              <h2 className="welcome-title">你好，有什么可以帮你的？</h2>
-            </div>
-          ) : (
-            <>
-              {messages.map((msg) => (
-                <div key={msg.id} className={`message ${msg.isUser ? 'user' : 'assistant'}`}>
-                  <div className={`message-content ${msg.isUser ? '' : 'markdown-body'}`}>
-                    {msg.isUser ? (
-                      msg.text
-                    ) : (
-                      <>
-                        {msg.handleList && msg.handleList.length > 0 && (
-                          <HandleList items={msg.handleList} autoCollapse={!isLoading && msg.handleList.length > 3} />
-                        )}
-                        {msg.text ? (
-                          <div className="markdown-content">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+            ) : (
+              <>
+                {messages.map((msg) => (
+                  <div key={msg.id} className={`message ${msg.isUser ? 'user' : 'assistant'}`}>
+                    <div className={`message-content ${msg.isUser ? '' : 'markdown-body'}`}>
+                      {msg.isUser ? (
+                        msg.text
+                      ) : (
+                        <>
+                          {msg.handleList && msg.handleList.length > 0 && (
+                            <HandleList items={msg.handleList} autoCollapse={!isLoading && msg.handleList.length > 3} />
+                          )}
+                          {msg.text ? (
+                            <div className="markdown-content">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                            </div>
+                          ) : isLoading ? (
+                            <div className="markdown-content">处理中...</div>
+                          ) : null}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {isLoading && !pendingApprove && (
+                  <div className="message loading-message">
+                    <span className="loading-dot" />
+                    <span className="loading-dot" />
+                    <span className="loading-dot" />
+                  </div>
+                )}
+                {pendingApprove && (
+                  <div className='message-content approve-message'>
+                    <div className="approve-card">
+                      <div className="approve-title">需要审批</div>
+                      {pendingApprove.items.map((item, idx) => (
+                        <div key={idx} className="approve-item">
+                          <div className="approve-name">{item.name}</div>
+                          <div className="approve-desc markdown-body">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.description}</ReactMarkdown>
                           </div>
-                        ) : isLoading ? (
-                          <div className="markdown-content">处理中...</div>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {isLoading && !pendingApprove && (
-                <div className="message assistant loading-message">
-                  <div className="message-content">
-                    <span className="loading-dot" />
-                    <span className="loading-dot" />
-                    <span className="loading-dot" />
-                  </div>
-                </div>
-              )}
-              {pendingApprove && (
-                <div className="approve-card">
-                  <div className="approve-title">需要审批</div>
-                  {pendingApprove.items.map((item, idx) => (
-                    <div key={idx} className="approve-item">
-                      <div className="approve-name">{item.name}</div>
-                      <div className="approve-desc markdown-body">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.description}</ReactMarkdown>
+                        </div>
+                      ))}
+                      <div className="approve-actions">
+                        <button className="approve-btn approve" onClick={() => handleApproveDecision('approve', '同意')}>
+                          同意
+                        </button>
+                        <button className="approve-btn reject" onClick={() => handleApproveDecision('reject', '拒绝')}>
+                          拒绝
+                        </button>
                       </div>
                     </div>
-                  ))}
-                  <div className="approve-actions">
-                    <button className="approve-btn approve" onClick={() => handleApproveDecision('approve', '同意')}>
-                      同意
-                    </button>
-                    <button className="approve-btn reject" onClick={() => handleApproveDecision('reject', '拒绝')}>
-                      拒绝
-                    </button>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </>
-          )}
+                )}
+                <div className='message-end' ref={messagesEndRef} />
+              </>
+            )}
+          </div>
         </div>
-
         {/* 输入区域 */}
         <div className="chat-input-area">
           <div className="input-container">
