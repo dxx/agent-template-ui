@@ -3,7 +3,7 @@ import { showProgress, hideProgress } from '../components/ProgressBar';
 
 const request = axios.create({
   baseURL: import.meta.env.APP_API_BASE_URL || '',
-  timeout: 30000,
+  timeout: 10000,
 });
 
 request.interceptors.request.use(
