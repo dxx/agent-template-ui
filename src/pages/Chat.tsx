@@ -105,12 +105,13 @@ export default function Chat() {
   const [activeChatId, setActiveChatId] = useState<string>('');
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [input, setInput] = useState('');
-  const [isScrollable, setIsScrollable] = useState(false);
+  const [isMessageAreaScrollable, setIsMessageAreaScrollable] = useState(false);
   const [userMenuVisible, setUserMenuVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [pendingApprove, setPendingApprove] = useState<Approve | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const messageAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortCtrlRef = useRef<AbortController | null>(null);
@@ -129,6 +130,26 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
+  }, [activeChatId, messages, pendingApprove, isLoading]);
+
+  useEffect(() => {
+    const messageArea = messageAreaRef.current;
+    if (!messageArea) return;
+
+    const updateScrollable = () => {
+      setIsMessageAreaScrollable(messageArea.scrollHeight > messageArea.clientHeight);
+    };
+
+    updateScrollable();
+
+    const resizeObserver = new ResizeObserver(updateScrollable);
+    resizeObserver.observe(messageArea);
+    window.addEventListener('resize', updateScrollable);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateScrollable);
+    };
   }, [activeChatId, messages, pendingApprove, isLoading]);
 
   useEffect(() => {
@@ -289,11 +310,6 @@ export default function Chat() {
     if (!input.trim() || isLoading) return;
     const text = input.trim();
     setInput('');
-    // 重置输入框高度
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      setIsScrollable(false);
-    }
 
     let targetChatId = activeChatId;
 
@@ -338,16 +354,15 @@ export default function Chat() {
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-    const textarea = e.target;
-    textarea.style.height = 'auto';
-    const newHeight = textarea.scrollHeight;
-    textarea.style.height = `${newHeight}px`;
-    setIsScrollable(newHeight > 72);
   };
 
   // 创建新对话
   const handleNewChat = async () => {
     try {
+      if (pendingApprove) {
+        showMessage('warning', "请先进行审批");
+        return;
+      }
       const chatId = await createChat();
       const newChat: ChatItem = {
         chatId,
@@ -365,6 +380,10 @@ export default function Chat() {
   // 删除指定对话
   const handleDeleteChat = async (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (pendingApprove) {
+      showMessage('warning', "请先进行审批");
+      return;
+    }
     try {
       await deleteChat(chatId);
       showMessage('success', '删除成功');
@@ -411,7 +430,13 @@ export default function Chat() {
                 <div
                   key={chat.chatId}
                   className={`chat-item ${chat.chatId === activeChatId ? 'active' : ''}`}
-                  onClick={() => setActiveChatId(chat.chatId)}
+                  onClick={() => {
+                    if (pendingApprove) {
+                      showMessage('warning', "请先进行审批");
+                      return;
+                    }
+                    setActiveChatId(chat.chatId)}
+                  }
                 >
                   <span className="chat-title">{chat.title}</span>
                   <button
@@ -467,7 +492,7 @@ export default function Chat() {
           </div>
         </div>
         {/* 消息区域 */}
-        <div className="chat-message-area">
+        <div ref={messageAreaRef} className={`chat-message-area ${isMessageAreaScrollable ? 'is-scrollable' : ''}`}>
           <div className="chat-messages">
             {messages.length === 0 ? (
               <div className="welcome-screen">
@@ -486,7 +511,7 @@ export default function Chat() {
                       ) : (
                         <>
                           {msg.handleList && msg.handleList.length > 0 && (
-                            <HandleList items={msg.handleList} autoCollapse={!isLoading && msg.handleList.length > 3} />
+                            <HandleList items={msg.handleList} autoCollapse={!isLoading} />
                           )}
                           {msg.text ? (
                             <div className="markdown-content">
@@ -546,7 +571,7 @@ export default function Chat() {
               onKeyDown={handleKeyDown}
               placeholder="向智能体提问"
               disabled={isLoading || !!pendingApprove}
-              className={`chat-input ${isScrollable ? 'scrollable' : ''}`}
+              className='chat-input'
             />
             <button className={`send-btn ${isLoading ? 'loading' : input.trim() ? 'active' : ''}`}
               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}

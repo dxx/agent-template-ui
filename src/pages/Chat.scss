@@ -341,14 +341,35 @@
   padding-top: 30px;
   display: flex;
   justify-content: center;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 999px;
+  }
+
+  &.is-scrollable {
+    padding-left: 8px;
+  }
 }
 
 // 消息区域
 .chat-messages {
   flex: 1;
   width: 100%;
-  max-width: 800px;
-  padding: 0 10px;
+  max-width: 840px;
+  padding: 0 20px;
+  box-sizing: border-box;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -408,6 +429,7 @@
 }
 
 .message.assistant .message-content {
+  padding: 0px;
   color: #333;
 }
 
@@ -539,7 +561,6 @@
   align-items: center;
   gap: 6px;
   padding-top: 0px;
-  padding-left: 16px;
   padding-bottom: 14px;
 }
 
@@ -575,12 +596,11 @@
 .chat-input-area {
   padding-top: 6px;
   padding-bottom: 24px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
   background: #fff;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
 }
 
 .input-container {
@@ -590,23 +610,23 @@
   gap: 8px;
   width: 100%;
   max-width: 800px;
+  margin: 0 auto;
   box-sizing: border-box;
   border: 1px solid #e5e5e5;
   border-radius: 16px;
   padding: 12px 16px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   user-select: none;
 
   &:focus-within {
-    border-color: #67a4ff;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border-color: #b2d1ff;
+    box-shadow: 0 2px 12px rgba(43, 128, 255, 0.25);
   }
 }
 
 .chat-input {
   flex: 1;
-  min-width: 0;
   border: none;
   outline: none;
   font-size: 15px;
@@ -615,8 +635,7 @@
   background: transparent;
   padding: 4px 0;
   line-height: 24px;
-  max-height: 72px;
-  overflow-y: hidden;
+  overflow-y: auto;
   resize: none;
   box-sizing: border-box;
   scrollbar-width: none;
@@ -625,10 +644,6 @@
   &::-webkit-scrollbar {
     width: 0;
     height: 0;
-  }
-
-  &.scrollable {
-    overflow-y: auto;
   }
 
   &::placeholder {
@@ -717,6 +732,7 @@
 
 .approve-message {
   padding-top: 0px;
+  padding-left: 0px;
 }
 
 .approve-card {
