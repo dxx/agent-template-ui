@@ -408,7 +408,7 @@ export default function Chat() {
       {/* 左侧边栏 */}
       <aside className={`chat-sidebar ${sidebarVisible ? '' : 'collapsed'}`}>
         <div className="sidebar-header">
-          <h1 className="brand-name">Agent Template UI</h1>
+          <h1 className="brand-name">Agent Template</h1>
         </div>
 
         <button className="new-chat-btn" onClick={handleNewChat}>

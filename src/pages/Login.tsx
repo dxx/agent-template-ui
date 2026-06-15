@@ -34,7 +34,7 @@ export default function Login() {
       </div> */}
       <div className="login-right">
         <div className="login-card">
-          <h1 className="login-title">登录</h1>
+          <h1 className="login-title">Agent Template 登录</h1>
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <label className="form-label">手机号</label>

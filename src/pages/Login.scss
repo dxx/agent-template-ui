@@ -8,7 +8,7 @@
 .login-left {
   flex: 0 0 30%;
   position: relative;
-  background: #3080f9;
+  background: #438eff;
   overflow: hidden;
 
   img {
@@ -140,7 +140,7 @@
 .login-button {
   width: 100%;
   height: 48px;
-  background: #3080f9;
+  background: #438eff;
   color: white;
   border: none;
   border-radius: 6px;
@@ -151,7 +151,7 @@
   transition: background 0.2s;
 
   &:hover {
-    background: #0138ff;
+    background: #3080f9;
   }
 }
 
