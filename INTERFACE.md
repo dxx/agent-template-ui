@@ -38,41 +38,31 @@
 
 ### 视频理解
 
-展示视频 URL 输入准备状态。在输入框中输入视频链接，并询问“这段视频的内容是什么“：
+展示视频 URL 输入准备状态。在输入框中输入视频链接，并询问“这段视频的内容是什么”：
 
 ![视频理解一](https://dxx.github.io/static-resource/agent-template/screenshots/video_input_1.png)
 
 展示视频输入的视频理解结果。界面渲染视频播放器，Agent 分析视频内容，描述视频中伦敦大本钟、城市街景和场景细节：
 
-![视频理解一](https://dxx.github.io/static-resource/agent-template/screenshots/video_input_1.png)
+![视频理解二](https://dxx.github.io/static-resource/agent-template/screenshots/video_input_2.png)
 
 
 ## 视频演示
 
 ### 流式对话
 
-演示基础聊天流程：
-
-<video controls src="https://dxx.github.io/static-resource/agent-template/videos/chat.mp4" title="流式对话" style="max-width: 100%; max-height: 360px"></video>
+演示基础聊天流程：[点击查看](https://dxx.github.io/static-resource/agent-template/videos/chat.mp4)
 
 ### 人工审批
 
-演示文件写入任务：
+演示文件写入任务：[点击查看](https://dxx.github.io/static-resource/agent-template/videos/hitl_1.mp4)
 
-<video controls src="https://dxx.github.io/static-resource/agent-template/videos/hitl_1.mp4" title="人工审批一" style="max-width: 100%; max-height: 360px"><video>
-
-演示文件读取任务：
-
-<video controls src="https://dxx.github.io/static-resource/agent-template/videos/hitl_2.mp4" title="人工审批二" style="max-width: 100%; max-height: 360px"><video>
+演示文件读取任务：[点击查看](https://dxx.github.io/static-resource/agent-template/videos/hitl_2.mp4)
 
 ### 图片理解
 
-演示图片输入：
-
-<video controls src="https://dxx.github.io/static-resource/agent-template/videos/image_input.mp4" title="图片输入" style="max-width: 100%; max-height: 360px"><video>
+演示图片输入：[点击查看](https://dxx.github.io/static-resource/agent-template/videos/image_input.mp4)
 
 ### 视频理解
 
-演示视频输入：
-
-<video controls src="https://dxx.github.io/static-resource/agent-template/videos/video_input.mp4" title="视频输入" style="max-width: 100%; max-height: 360px"><video>
+演示视频输入：[点击查看](https://dxx.github.io/static-resource/agent-template/videos/video_input.mp4)
