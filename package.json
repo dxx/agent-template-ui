@@ -17,7 +17,9 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.15.0",
     "remark-gfm": "^4.0.1",
-    "sass": "^1.99.0"
+    "sass": "^1.99.0",
+    "camelcase-keys": "^10.0.2",
+    "snakecase-keys": "^9.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
