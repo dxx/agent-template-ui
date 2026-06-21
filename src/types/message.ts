@@ -1,11 +1,11 @@
 export interface Message {
-  message_id: string;
-  message_type: 'user' | 'agent';
+  messageId: string;
+  messageType: 'user' | 'agent';
   content: string;
   created: number;
 }
 
 export interface MessageResponse {
-  chat_id: string;
+  chatId: string;
   messages: Message[];
 }

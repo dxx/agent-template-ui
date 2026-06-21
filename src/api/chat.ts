@@ -1,4 +1,6 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
+import camelcaseKeys from 'camelcase-keys';
+import snakecaseKeys from 'snakecase-keys';
 import type { ChatRequest, ChatResponse } from '../types/chat';
 
 export interface StreamChatOptions {
@@ -21,7 +23,7 @@ export function streamChat(options: StreamChatOptions) {
       'user-token': token,
       'chat-id': options.chatId,
     },
-    body: JSON.stringify(options.body),
+    body: JSON.stringify(snakecaseKeys(options.body as unknown as Record<string, unknown>, { deep: true })),
     signal: options.signal,
     async onopen(response) {
       const contentType = response.headers.get('content-type');
@@ -40,7 +42,7 @@ export function streamChat(options: StreamChatOptions) {
     onmessage(msg) {
       if (msg.event === 'message' || msg.event === '') {
         try {
-          const data: ChatResponse = JSON.parse(msg.data);
+          const data = camelcaseKeys(JSON.parse(msg.data), { deep: true }) as ChatResponse;
           options.onMessage(data);
         } catch {
           console.warn('SSE 消息解析失败:', msg.data);

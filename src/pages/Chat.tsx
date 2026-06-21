@@ -86,13 +86,13 @@ function convertResponseToChatItem(response: MessageResponse): ChatItem {
   const messages: UIMessage[] = response.messages
     .filter(msg => msg.content && !/^[\s\n]+$/.test(msg.content))
     .map(msg => ({
-      id: msg.message_id,
+      id: msg.messageId,
       text: msg.content.trim(),
-      isUser: msg.message_type === 'user',
+      isUser: msg.messageType === 'user',
       handleList: [],
     }));
   return {
-    chatId: response.chat_id,
+    chatId: response.chatId,
     title: generateTitle(messages),
     messages,
   };
@@ -198,7 +198,7 @@ export default function Chat() {
     setPendingApprove(null);
 
     // 首次消息时，创建空消息占位用于后续流式更新
-    if (body.msg_type === 'normal') {
+    if (body.msgType === 'normal') {
       const replyId = String(Date.now()) + '_reply';
       currentReplyIdRef.current = replyId;
       setChatList(prev => prev.map(chat => {
@@ -215,7 +215,7 @@ export default function Chat() {
       signal: abortCtrlRef.current.signal,
       // 处理流式返回的消息
       onMessage(data) {
-        if (data.msg_type === 'normal' || data.msg_type === 'process' || data.msg_type === 'error') {
+        if (data.msgType === 'normal' || data.msgType === 'process' || data.msgType === 'error') {
           setChatList(prev => prev.map(chat => {
             if (chat.chatId !== chatId) return chat;
             return {
@@ -224,10 +224,10 @@ export default function Chat() {
                 if (m.id === currentReplyIdRef.current) {
                   const content = data.content || '';
                   // process/error 类型追加到处理过程列表
-                  if (data.msg_type === 'process' || data.msg_type === 'error') {
+                  if (data.msgType === 'process' || data.msgType === 'error') {
                     const display = content.length > MESSAE_MAX_LEN ?
                       content.slice(0, MESSAE_MAX_LEN) + '...' : content;
-                    return { ...m, handleList: [...(m.handleList || []), { type: data.msg_type as 'process' | 'error', content: display }] };
+                    return { ...m, handleList: [...(m.handleList || []), { type: data.msgType as 'process' | 'error', content: display }] };
                   }
                   // normal 类型累加文本内容
                   const newText = m.text ? m.text + content : content;
@@ -237,7 +237,7 @@ export default function Chat() {
               }),
             };
           }));
-        } else if (data.msg_type === 'approve') {
+        } else if (data.msgType === 'approve') {
           // 需要用户审批
           if (data.approve) {
             setPendingApprove(data.approve);
@@ -295,14 +295,14 @@ export default function Chat() {
   const handleApproveDecision = (decisionType: string, description: string) => {
     if (!pendingApprove || !activeChatId) return;
     const decision: Decision = {
-      decision_id: pendingApprove.approve_id,
+      decisionId: pendingApprove.approveId,
       items: pendingApprove.items.map(() => ({
-        decision_type: decisionType,
+        decisionType: decisionType,
         description,
       })),
     };
     setPendingApprove(null);
-    startStream(activeChatId, { msg_type: 'decision', content: '', decision });
+    startStream(activeChatId, { msgType: 'decision', content: '', decision });
   };
 
   // 发送消息
@@ -342,7 +342,7 @@ export default function Chat() {
     }));
 
     // 发起流式请求
-    startStream(targetChatId, { msg_type: 'normal', content: text });
+    startStream(targetChatId, { msgType: 'normal', content: text });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

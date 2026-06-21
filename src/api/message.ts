@@ -1,3 +1,4 @@
+import camelcaseKeys from 'camelcase-keys';
 import request from './request';
 import type { MessageResponse, Message } from '../types/message';
 
@@ -6,11 +7,11 @@ export async function createChat(): Promise<string> {
 }
 
 export async function getAllChats(): Promise<MessageResponse[]> {
-  return request.get('/message/all').then((res: any) => res.data);
+  return request.get('/message/all').then((res: any) => camelcaseKeys(res.data, { deep: true }) as MessageResponse[]);
 }
 
 export async function getChatMessages(chatId: string): Promise<Message[]> {
-  return request.get(`/message/chat/${chatId}`).then((res: any) => res.data);
+  return request.get(`/message/chat/${chatId}`).then((res: any) => camelcaseKeys(res.data, { deep: true }) as Message[]);
 }
 
 export async function deleteChat(chatId: string): Promise<boolean> {

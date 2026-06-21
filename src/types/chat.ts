@@ -9,29 +9,29 @@ export interface ApproveItem {
 }
 
 export interface Approve {
-  approve_id: string;
+  approveId: string;
   items: ApproveItem[];
 }
 
 export interface DecisionItem {
-  decision_type: string;
+  decisionType: string;
   description: string;
 }
 
 export interface Decision {
-  decision_id: string;
+  decisionId: string;
   items: DecisionItem[];
 }
 
 export interface ChatRequest {
-  msg_type: RequestMsgType;
+  msgType: RequestMsgType;
   content: string;
   decision?: Decision | null;
 }
 
 export interface ChatResponse {
-  msg_id: string;
-  msg_type: ResponseMsgType;
+  msgId: string;
+  msgType: ResponseMsgType;
   content?: string | null;
   approve?: Approve | null;
   created: number;
