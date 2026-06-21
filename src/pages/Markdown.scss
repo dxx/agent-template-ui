@@ -109,3 +109,19 @@
     margin: 12px 0;
   }
 }
+
+.markdown-image {
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
+}
+
+.markdown-video {
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 8px;
+  display: block;
+  background: #000;
+}

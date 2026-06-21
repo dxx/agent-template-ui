@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './Chat.scss';
 import './Markdown.scss';
@@ -8,6 +8,7 @@ import reactIcon from '../assets/react.svg';
 import { createChat, getAllChats, deleteChat } from '../api/message';
 import { streamChat } from '../api/chat';
 import { useMessage } from '../components/Message';
+import { convertInputMediaUrlsToMsgTags, convertMsgMediaUrlsToMarkdown, parseInputContent } from '../utils/chat-content';
 import type { MessageResponse } from '../types/message';
 import type { Approve, Decision, ChatRequest } from '../types/chat';
 
@@ -87,7 +88,8 @@ function convertResponseToChatItem(response: MessageResponse): ChatItem {
     .filter(msg => msg.content && !/^[\s\n]+$/.test(msg.content))
     .map(msg => ({
       id: msg.messageId,
-      text: msg.content.trim(),
+      // 历史消息里媒体以自定义标签保存，进入 UI 前先转成 Markdown 可渲染格式。
+      text: convertMsgMediaUrlsToMarkdown(msg.content.trim()),
       isUser: msg.messageType === 'user',
       handleList: [],
     }));
@@ -106,6 +108,7 @@ export default function Chat() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [input, setInput] = useState('');
   const [isMessageAreaScrollable, setIsMessageAreaScrollable] = useState(false);
+  const [isMessageAreaAtBottom, setIsMessageAreaAtBottom] = useState(true);
   const [userMenuVisible, setUserMenuVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -120,11 +123,22 @@ export default function Chat() {
   const activeChat = chatList.find(chat => chat.chatId === activeChatId);
   const messages = activeChat?.messages || [];
 
-  const scrollToBottom = () => {
+  // 消息、审批状态变化后滚动到底部；媒体加载完成后也会复用这个函数补滚动。
+  const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     });
-  };
+  }, []);
+
+  const updateMessageAreaState = useCallback(() => {
+    const messageArea = messageAreaRef.current;
+    if (!messageArea) return;
+
+    const bottomThreshold = 150;
+    const distanceToBottom = messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight;
+    setIsMessageAreaScrollable(messageArea.scrollHeight > messageArea.clientHeight);
+    setIsMessageAreaAtBottom(distanceToBottom <= bottomThreshold);
+  }, []);
 
   const MESSAE_MAX_LEN = 100;
 
@@ -136,21 +150,19 @@ export default function Chat() {
     const messageArea = messageAreaRef.current;
     if (!messageArea) return;
 
-    const updateScrollable = () => {
-      setIsMessageAreaScrollable(messageArea.scrollHeight > messageArea.clientHeight);
-    };
+    updateMessageAreaState();
 
-    updateScrollable();
-
-    const resizeObserver = new ResizeObserver(updateScrollable);
+    const resizeObserver = new ResizeObserver(updateMessageAreaState);
     resizeObserver.observe(messageArea);
-    window.addEventListener('resize', updateScrollable);
+    messageArea.addEventListener('scroll', updateMessageAreaState);
+    window.addEventListener('resize', updateMessageAreaState);
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateScrollable);
+      messageArea.removeEventListener('scroll', updateMessageAreaState);
+      window.removeEventListener('resize', updateMessageAreaState);
     };
-  }, [activeChatId, messages, pendingApprove, isLoading]);
+  }, [activeChatId, messages, pendingApprove, isLoading, updateMessageAreaState]);
 
   useEffect(() => {
     if (!isLoading && textareaRef.current) {
@@ -223,13 +235,13 @@ export default function Chat() {
               messages: chat.messages.map(m => {
                 if (m.id === currentReplyIdRef.current) {
                   const content = data.content || '';
-                  // process/error 类型追加到处理过程列表
+                  // process/error 不展示在正文里，而是折叠到处理过程列表。
                   if (data.msgType === 'process' || data.msgType === 'error') {
                     const display = content.length > MESSAE_MAX_LEN ?
                       content.slice(0, MESSAE_MAX_LEN) + '...' : content;
                     return { ...m, handleList: [...(m.handleList || []), { type: data.msgType as 'process' | 'error', content: display }] };
                   }
-                  // normal 类型累加文本内容
+                  // normal 是 SSE 增量文本，需要持续拼接到当前回复占位消息。
                   const newText = m.text ? m.text + content : content;
                   return { ...m, text: newText };
                 }
@@ -332,7 +344,13 @@ export default function Chat() {
     }
 
     // 添加用户消息到列表
-    const newMessage: UIMessage = { id: String(Date.now()), text, isUser: true, handleList: [] };
+    const newMessage: UIMessage = {
+      id: String(Date.now()),
+      // 本地立即展示用户消息：先转历史标签格式，再转 Markdown，和历史消息渲染保持一致。
+      text: convertMsgMediaUrlsToMarkdown(convertInputMediaUrlsToMsgTags(text)),
+      isUser: true,
+      handleList: [],
+    };
     setChatList(prev => prev.map(chat => {
       if (chat.chatId !== targetChatId) return chat;
       const updatedMessages = [...chat.messages, newMessage];
@@ -341,8 +359,8 @@ export default function Chat() {
       return { ...chat, messages: updatedMessages, title };
     }));
 
-    // 发起流式请求
-    startStream(targetChatId, { msgType: 'normal', content: text });
+    // 发起流式请求：纯文本保持 string，包含图片/视频链接时转为多模态 content 数组。
+    startStream(targetChatId, { msgType: 'normal', content: parseInputContent(text) });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -402,6 +420,44 @@ export default function Chat() {
       showMessage('error', msg || '删除失败');
     }
   };
+
+  const markdownComponents = useMemo(() => ({
+    // 图片加载后高度会变化，触发一次滚动确保最新消息仍在底部。
+    img({ src, alt }: { src?: string; alt?: string }) {
+      return (
+        <img
+          src={src || ''}
+          alt={alt || '图片'}
+          loading="lazy"
+          className="markdown-image"
+          onLoad={scrollToBottom}
+        />
+      );
+    },
+    // 视频由 Markdown 链接转换而来，只对用户消息启用自定义渲染。
+    a({ href, children }: { href?: string; children?: React.ReactNode }) {
+      const pathname = href ? new URL(href, window.location.href).pathname.toLowerCase() : '';
+      if (['.mp4', '.webm', '.ogg', '.mov', '.m4v'].some(ext => pathname.endsWith(ext))) {
+        return (
+          <video
+            src={href}
+            controls
+            preload="metadata"
+            className="markdown-video"
+            onLoadedMetadata={scrollToBottom}
+            onLoadedData={scrollToBottom}
+          />
+        );
+      }
+      return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
+    },
+  }), [scrollToBottom]);
+
+  // react-markdown 默认会过滤部分协议，这里只额外放行 base64 图片。
+  const markdownUrlTransform = useCallback((url: string) => {
+    if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(url)) return url;
+    return defaultUrlTransform(url);
+  }, []);
 
   return (
     <div className='chat-layout'>
@@ -505,16 +561,22 @@ export default function Chat() {
               <>
                 {messages.map((msg) => (
                   <div key={msg.id} className={`message ${msg.isUser ? 'user' : 'assistant'}`}>
-                    <div className={`message-content ${msg.isUser ? '' : 'markdown-body'}`}>
+                    <div className="message-content">
                       {msg.isUser ? (
-                        msg.text
+                        <div className="markdown-content markdown-body">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                            urlTransform={markdownUrlTransform}
+                          >{msg.text}</ReactMarkdown>
+                        </div>
                       ) : (
                         <>
                           {msg.handleList && msg.handleList.length > 0 && (
                             <HandleList items={msg.handleList} autoCollapse={!isLoading} />
                           )}
                           {msg.text ? (
-                            <div className="markdown-content">
+                            <div className="markdown-content markdown-body">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                             </div>
                           ) : isLoading ? (
@@ -560,6 +622,14 @@ export default function Chat() {
             )}
           </div>
         </div>
+        {!isMessageAreaAtBottom && (
+          <button type="button" className="scroll-bottom-btn" onClick={scrollToBottom} aria-label="滚动到底部">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 4v16" />
+              <path d="M5 13l7 7 7-7" />
+            </svg>
+          </button>
+        )}
         {/* 输入区域 */}
         <div className="chat-input-area">
           <div className="input-container">
