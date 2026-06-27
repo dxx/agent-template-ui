@@ -573,7 +573,7 @@ export default function Chat() {
                       ) : (
                         <>
                           {msg.handleList && msg.handleList.length > 0 && (
-                            <HandleList items={msg.handleList} autoCollapse={!isLoading} />
+                            <HandleList items={msg.handleList} autoCollapse={true} />
                           )}
                           {msg.text ? (
                             <div className="markdown-content markdown-body">
